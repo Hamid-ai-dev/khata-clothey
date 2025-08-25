@@ -2,41 +2,63 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Professional Clothing Brand Khata System Design Tokens */
 
 @layer base {
   :root {
+    /* Core System Colors */
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --foreground: 220 16% 22%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 220 16% 22%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 220 16% 22%;
 
-    --primary: 222.2 47.4% 11.2%;
+    /* Professional Business Primary - Navy Blue */
+    --primary: 219 38% 20%;
     --primary-foreground: 210 40% 98%;
+    --primary-glow: 219 38% 35%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Professional Secondary - Light Blues */
+    --secondary: 210 30% 96%;
+    --secondary-foreground: 219 38% 20%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 210 30% 96%;
+    --muted-foreground: 215 16% 46%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 210 30% 96%;
+    --accent-foreground: 219 38% 20%;
 
-    --destructive: 0 84.2% 60.2%;
+    /* Business Action Colors */
+    --success: 142 71% 45%;
+    --success-foreground: 355 100% 97%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 48 96% 89%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    /* UI Elements */
+    --border: 210 30% 92%;
+    --input: 210 30% 96%;
+    --ring: 219 38% 20%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
+
+    /* Professional Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(219 38% 20%), hsl(219 38% 35%));
+    --gradient-success: linear-gradient(135deg, hsl(142 71% 45%), hsl(142 71% 60%));
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(210 30% 98%));
+    --gradient-dashboard: linear-gradient(135deg, hsl(210 30% 98%), hsl(210 30% 94%));
+
+    /* Professional Shadows */
+    --shadow-card: 0 4px 6px -1px hsl(219 38% 20% / 0.1), 0 2px 4px -1px hsl(219 38% 20% / 0.06);
+    --shadow-elegant: 0 10px 25px -5px hsl(219 38% 20% / 0.15);
+    --shadow-glow: 0 0 20px hsl(219 38% 35% / 0.3);
+
+    /* Transitions */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
     --sidebar-background: 0 0% 98%;
 
