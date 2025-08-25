@@ -14,16 +14,145 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      customers: {
+        Row: {
+          address: string | null
+          cnic: string | null
+          created_at: string
+          id: string
+          name: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          cnic?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          cnic?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      products: {
+        Row: {
+          category: Database["public"]["Enums"]["product_category"]
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          price: number
+          sku: string
+          stock_quantity: number
+          updated_at: string
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["product_category"]
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          price: number
+          sku: string
+          stock_quantity?: number
+          updated_at?: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["product_category"]
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          price?: number
+          sku?: string
+          stock_quantity?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          customer_id: string
+          description: string | null
+          id: string
+          product_id: string | null
+          quantity: number | null
+          type: Database["public"]["Enums"]["transaction_type"]
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          customer_id: string
+          description?: string | null
+          id?: string
+          product_id?: string | null
+          quantity?: number | null
+          type: Database["public"]["Enums"]["transaction_type"]
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          customer_id?: string
+          description?: string | null
+          id?: string
+          product_id?: string | null
+          quantity?: number | null
+          type?: Database["public"]["Enums"]["transaction_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_customer_balance: {
+        Args: { customer_uuid: string }
+        Returns: number
+      }
     }
     Enums: {
-      [_ in never]: never
+      product_category:
+        | "shirts"
+        | "pants"
+        | "shoes"
+        | "accessories"
+        | "jackets"
+        | "dresses"
+        | "suits"
+        | "casual"
+        | "formal"
+      transaction_type: "credit" | "debit"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +279,19 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      product_category: [
+        "shirts",
+        "pants",
+        "shoes",
+        "accessories",
+        "jackets",
+        "dresses",
+        "suits",
+        "casual",
+        "formal",
+      ],
+      transaction_type: ["credit", "debit"],
+    },
   },
 } as const
