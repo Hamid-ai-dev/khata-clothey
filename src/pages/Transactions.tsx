@@ -334,7 +334,7 @@ export default function Transactions() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Customer *</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select customer" />
@@ -358,7 +358,7 @@ export default function Transactions() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Transaction Type *</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select type" />
@@ -379,7 +379,7 @@ export default function Transactions() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Product (Optional)</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select product (optional)" />
