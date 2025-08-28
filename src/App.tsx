@@ -9,6 +9,8 @@ import Products from "./pages/Products";
 import Transactions from "./pages/Transactions";
 import Reports from "./pages/Reports";
 import Statements from "./pages/Statements";
+import Notifications from "./pages/Notifications";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +28,8 @@ const App = () => (
           <Route path="/transactions" element={<Transactions />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/statements" element={<Statements />} />
+          <Route path="/notifications" element={<Notifications />} />
+          <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

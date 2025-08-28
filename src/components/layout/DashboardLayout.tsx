@@ -1,6 +1,6 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
-import { Bell, User, LogOut } from "lucide-react";
+import { Bell, User, LogOut, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -10,12 +10,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useNavigate } from "react-router-dom";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
+  const navigate = useNavigate();
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-gradient-dashboard">
@@ -31,7 +33,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             
             <div className="flex items-center gap-4">
               {/* Notifications */}
-              <Button variant="ghost" size="icon" className="relative">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="relative"
+                onClick={() => navigate('/notifications')}
+              >
                 <Bell className="h-5 w-5" />
                 <span className="absolute -top-1 -right-1 h-3 w-3 bg-destructive rounded-full text-xs"></span>
               </Button>
@@ -50,9 +57,19 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuItem className="flex items-center gap-2">
+                  <DropdownMenuItem 
+                    className="flex items-center gap-2"
+                    onClick={() => navigate('/settings')}
+                  >
                     <User className="h-4 w-4" />
                     Profile Settings
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    className="flex items-center gap-2"
+                    onClick={() => navigate('/settings')}
+                  >
+                    <Settings className="h-4 w-4" />
+                    Settings
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem className="flex items-center gap-2 text-destructive">
