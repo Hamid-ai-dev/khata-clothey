@@ -44,6 +44,7 @@ import {
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { UserAccessManagement } from "@/components/settings/UserAccessManagement";
 
 const Settings = () => {
   const { toast } = useToast();
@@ -195,6 +196,11 @@ const Settings = () => {
 
           {/* Business Profile Tab */}
           <TabsContent value="business" className="space-y-6">
+            {/* User Access Management - Only for Admins */}
+            <UserAccessManagement />
+            
+            <Separator />
+            
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
