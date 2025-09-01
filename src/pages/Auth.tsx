@@ -61,15 +61,6 @@ const Auth = () => {
           setIsSignUp(false);
         }
       } else {
-        // First check if email is allowed
-        const { data: emailCheck } = await supabase.rpc('is_email_allowed', { 
-          user_email: email 
-        });
-
-        if (!emailCheck) {
-          throw new Error("Access denied. This email is not authorized to access the system.");
-        }
-
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
