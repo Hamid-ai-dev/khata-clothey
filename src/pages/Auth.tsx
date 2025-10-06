@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Lock, Mail } from "lucide-react";
+import { Loader2, Lock, Mail, User, Building2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -18,6 +18,8 @@ const Auth = () => {
   // Form state
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [businessName, setBusinessName] = useState("");
+  const [ownerName, setOwnerName] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
 
   // Check if user is already logged in
@@ -38,16 +40,20 @@ const Auth = () => {
 
     try {
       if (isSignUp) {
-        // Only allow signup for admin email
-        if (email !== "admin@accountledger.com") {
-          throw new Error("Signup is only available for admin users.");
+        if (!businessName.trim() || !ownerName.trim()) {
+          throw new Error("Please fill in all required fields");
         }
-        
+
+        const redirectUrl = `${window.location.origin}/`;
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/`
+            emailRedirectTo: redirectUrl,
+            data: {
+              business_name: businessName,
+              owner_name: ownerName,
+            }
           }
         });
 
@@ -59,6 +65,10 @@ const Auth = () => {
             description: "You can now sign in with your credentials.",
           });
           setIsSignUp(false);
+          setEmail("");
+          setPassword("");
+          setBusinessName("");
+          setOwnerName("");
         }
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({
@@ -97,62 +107,91 @@ const Auth = () => {
           </div>
           <CardTitle className="text-2xl font-bold">Account Ledger</CardTitle>
           <CardDescription>
-            Sign in to access the dashboard
+            {isSignUp ? "Create your business account" : "Sign in to your account"}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {email === "admin@accountledger.com" && (
-              <div className="flex space-x-2">
-                <Button
-                  type="button"
-                  variant={!isSignUp ? "default" : "outline"}
-                  onClick={() => setIsSignUp(false)}
-                  className="flex-1"
-                >
-                  Sign In
-                </Button>
-                <Button
-                  type="button"
-                  variant={isSignUp ? "default" : "outline"}
-                  onClick={() => setIsSignUp(true)}
-                  className="flex-1"
-                >
-                  Sign Up
-                </Button>
-              </div>
-            )}
+            <div className="flex space-x-2">
+              <Button
+                type="button"
+                variant={!isSignUp ? "default" : "outline"}
+                onClick={() => setIsSignUp(false)}
+                className="flex-1"
+              >
+                Sign In
+              </Button>
+              <Button
+                type="button"
+                variant={isSignUp ? "default" : "outline"}
+                onClick={() => setIsSignUp(true)}
+                className="flex-1"
+              >
+                Sign Up
+              </Button>
+            </div>
             
             <form onSubmit={handleSubmit} className="space-y-4">
+              {isSignUp && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="businessName">
+                      <Building2 className="inline h-4 w-4 mr-2" />
+                      Business Name
+                    </Label>
+                    <Input
+                      id="businessName"
+                      type="text"
+                      placeholder="My Shop"
+                      value={businessName}
+                      onChange={(e) => setBusinessName(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="ownerName">
+                      <User className="inline h-4 w-4 mr-2" />
+                      Owner Name
+                    </Label>
+                    <Input
+                      id="ownerName"
+                      type="text"
+                      placeholder="John Doe"
+                      value={ownerName}
+                      onChange={(e) => setOwnerName(e.target.value)}
+                      required
+                    />
+                  </div>
+                </>
+              )}
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="Enter your email"
-                    className="pl-10"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
+                <Label htmlFor="email">
+                  <Mail className="inline h-4 w-4 mr-2" />
+                  Email
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="Enter your password"
-                    className="pl-10"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
-                </div>
+                <Label htmlFor="password">
+                  <Lock className="inline h-4 w-4 mr-2" />
+                  Password
+                </Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={6}
+                />
               </div>
               {error && (
                 <Alert variant="destructive">
