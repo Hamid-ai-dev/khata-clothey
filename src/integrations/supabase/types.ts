@@ -10,210 +10,20 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "13.0.4"
+    PostgrestVersion: "13.0.5"
   }
   public: {
     Tables: {
-      allowed_emails: {
-        Row: {
-          added_by: string | null
-          created_at: string
-          email: string
-          id: string
-          is_admin: boolean
-          updated_at: string
-        }
-        Insert: {
-          added_by?: string | null
-          created_at?: string
-          email: string
-          id?: string
-          is_admin?: boolean
-          updated_at?: string
-        }
-        Update: {
-          added_by?: string | null
-          created_at?: string
-          email?: string
-          id?: string
-          is_admin?: boolean
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      customers: {
-        Row: {
-          address: string | null
-          cnic: string | null
-          created_at: string
-          id: string
-          name: string
-          phone: string | null
-          updated_at: string
-        }
-        Insert: {
-          address?: string | null
-          cnic?: string | null
-          created_at?: string
-          id?: string
-          name: string
-          phone?: string | null
-          updated_at?: string
-        }
-        Update: {
-          address?: string | null
-          cnic?: string | null
-          created_at?: string
-          id?: string
-          name?: string
-          phone?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      products: {
-        Row: {
-          category: Database["public"]["Enums"]["product_category"]
-          created_at: string
-          description: string | null
-          id: string
-          name: string
-          price: number
-          sku: string
-          stock_quantity: number
-          updated_at: string
-        }
-        Insert: {
-          category: Database["public"]["Enums"]["product_category"]
-          created_at?: string
-          description?: string | null
-          id?: string
-          name: string
-          price: number
-          sku: string
-          stock_quantity?: number
-          updated_at?: string
-        }
-        Update: {
-          category?: Database["public"]["Enums"]["product_category"]
-          created_at?: string
-          description?: string | null
-          id?: string
-          name?: string
-          price?: number
-          sku?: string
-          stock_quantity?: number
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      profiles: {
-        Row: {
-          avatar_url: string | null
-          created_at: string
-          full_name: string | null
-          id: string
-          updated_at: string
-          user_id: string
-          username: string | null
-        }
-        Insert: {
-          avatar_url?: string | null
-          created_at?: string
-          full_name?: string | null
-          id?: string
-          updated_at?: string
-          user_id: string
-          username?: string | null
-        }
-        Update: {
-          avatar_url?: string | null
-          created_at?: string
-          full_name?: string | null
-          id?: string
-          updated_at?: string
-          user_id?: string
-          username?: string | null
-        }
-        Relationships: []
-      }
-      transactions: {
-        Row: {
-          amount: number
-          created_at: string
-          customer_id: string
-          description: string | null
-          id: string
-          product_id: string | null
-          quantity: number | null
-          type: Database["public"]["Enums"]["transaction_type"]
-          updated_at: string
-        }
-        Insert: {
-          amount: number
-          created_at?: string
-          customer_id: string
-          description?: string | null
-          id?: string
-          product_id?: string | null
-          quantity?: number | null
-          type: Database["public"]["Enums"]["transaction_type"]
-          updated_at?: string
-        }
-        Update: {
-          amount?: number
-          created_at?: string
-          customer_id?: string
-          description?: string | null
-          id?: string
-          product_id?: string | null
-          quantity?: number | null
-          type?: Database["public"]["Enums"]["transaction_type"]
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "transactions_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "customers"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "transactions_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+      [_ in never]: never
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      get_customer_balance: {
-        Args: { customer_uuid: string }
-        Returns: number
-      }
-      is_email_allowed: {
-        Args: { user_email: string }
-        Returns: boolean
-      }
+      [_ in never]: never
     }
     Enums: {
-      product_category:
-        | "shirts"
-        | "pants"
-        | "shoes"
-        | "accessories"
-        | "jackets"
-        | "dresses"
-        | "suits"
-        | "casual"
-        | "formal"
-      transaction_type: "credit" | "debit"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -340,19 +150,6 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {
-      product_category: [
-        "shirts",
-        "pants",
-        "shoes",
-        "accessories",
-        "jackets",
-        "dresses",
-        "suits",
-        "casual",
-        "formal",
-      ],
-      transaction_type: ["credit", "debit"],
-    },
+    Enums: {},
   },
 } as const
