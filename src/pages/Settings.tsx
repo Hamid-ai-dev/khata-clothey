@@ -199,12 +199,12 @@ const Settings = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 animate-fade-in px-4 md:px-0">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-primary mb-2">Settings</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl md:text-3xl font-bold text-primary mb-2">Settings</h1>
+            <p className="text-sm md:text-base text-muted-foreground">
               Configure your business management platform
             </p>
           </div>
@@ -237,7 +237,8 @@ const Settings = () => {
         </AlertDialog>
 
         <Tabs defaultValue="business" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-8">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-8 h-auto">.
+
             <TabsTrigger value="business">Business</TabsTrigger>
             <TabsTrigger value="user">User</TabsTrigger>
             <TabsTrigger value="system">System</TabsTrigger>

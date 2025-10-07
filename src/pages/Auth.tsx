@@ -100,13 +100,13 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md animate-scale-in hover-lift">
         <CardHeader className="text-center">
-          <div className="mx-auto w-12 h-12 bg-primary rounded-full flex items-center justify-center mb-4">
+          <div className="mx-auto w-12 h-12 bg-primary rounded-full flex items-center justify-center mb-4 transition-smooth hover:scale-110">
             <Lock className="h-6 w-6 text-primary-foreground" />
           </div>
-          <CardTitle className="text-2xl font-bold">Account Ledger</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-xl md:text-2xl font-bold">Account Ledger</CardTitle>
+          <CardDescription className="text-sm md:text-base">
             {isSignUp ? "Create your business account" : "Sign in to your account"}
           </CardDescription>
         </CardHeader>

@@ -232,11 +232,11 @@ export default function Customers() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-8">
+      <div className="space-y-6 md:space-y-8 animate-fade-in">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Customer Management</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Customer Management</h1>
+            <p className="text-sm md:text-base text-muted-foreground">
               Manage your customer profiles and view their account details
             </p>
           </div>
@@ -363,7 +363,9 @@ export default function Customers() {
                 <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
               </div>
             ) : (
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto -mx-4 sm:mx-0">
+                <div className="inline-block min-w-full align-middle">
+                  <div className="overflow-hidden">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -442,6 +444,8 @@ export default function Customers() {
                     )}
                   </TableBody>
                 </Table>
+                  </div>
+                </div>
               </div>
             )}
           </CardContent>

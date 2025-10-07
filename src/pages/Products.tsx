@@ -231,11 +231,11 @@ export default function Products() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-8">
+      <div className="space-y-6 md:space-y-8 animate-fade-in">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Product Management</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Product Management</h1>
+            <p className="text-sm md:text-base text-muted-foreground">
               Manage your inventory and track product details
             </p>
           </div>

@@ -180,12 +180,12 @@ const Notifications = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 animate-fade-in px-4 md:px-0">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-primary mb-2">Notifications</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl md:text-3xl font-bold text-primary mb-2">Notifications</h1>
+            <p className="text-sm md:text-base text-muted-foreground">
               Stay updated with your business activities and important alerts
             </p>
           </div>
