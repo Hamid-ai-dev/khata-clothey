@@ -61,8 +61,8 @@ const Auth = () => {
 
         if (data.user) {
           toast({
-            title: "Account created successfully",
-            description: "You can now sign in with your credentials.",
+            title: "Check your email",
+            description: "We’ve sent a confirmation link to your inbox. Please verify to sign in.",
           });
           setIsSignUp(false);
           setEmail("");

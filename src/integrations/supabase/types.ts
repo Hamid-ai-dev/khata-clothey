@@ -65,6 +65,42 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          message: string
+          priority: string
+          read: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          message: string
+          priority: string
+          read?: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          message?: string
+          priority?: string
+          read?: boolean
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           created_at: string | null
@@ -101,6 +137,7 @@ export type Database = {
       profiles: {
         Row: {
           address: string | null
+          business_license: string | null
           business_name: string
           created_at: string | null
           email: string
@@ -108,10 +145,12 @@ export type Database = {
           is_active: boolean | null
           owner_name: string
           phone: string | null
+          tax_id: string | null
           updated_at: string | null
         }
         Insert: {
           address?: string | null
+          business_license?: string | null
           business_name: string
           created_at?: string | null
           email: string
@@ -119,10 +158,12 @@ export type Database = {
           is_active?: boolean | null
           owner_name: string
           phone?: string | null
+          tax_id?: string | null
           updated_at?: string | null
         }
         Update: {
           address?: string | null
+          business_license?: string | null
           business_name?: string
           created_at?: string | null
           email?: string
@@ -130,6 +171,7 @@ export type Database = {
           is_active?: boolean | null
           owner_name?: string
           phone?: string | null
+          tax_id?: string | null
           updated_at?: string | null
         }
         Relationships: []

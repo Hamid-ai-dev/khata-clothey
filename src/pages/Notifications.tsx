@@ -30,6 +30,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -50,68 +51,82 @@ interface Notification {
 
 const Notifications = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [showUnreadOnly, setShowUnreadOnly] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
-  // Mock notifications - In real app, fetch from Supabase
-  const mockNotifications: Notification[] = [
-    {
-      id: '1',
-      type: 'warning',
-      title: 'Low Stock Alert',
-      message: 'Product "Premium Shirt" is running low on stock (2 items remaining)',
-      timestamp: new Date(Date.now() - 1000 * 60 * 30),
-      read: false,
-      category: 'product',
-      priority: 'high'
+  type DbNotification = {
+    id: string;
+    user_id: string;
+    type: 'info' | 'success' | 'warning' | 'error';
+    title: string;
+    message: string;
+    category: 'system' | 'transaction' | 'customer' | 'product' | 'report';
+    priority: 'low' | 'medium' | 'high';
+    read: boolean;
+    created_at: string;
+  };
+
+  const { data } = useQuery({
+    queryKey: ['notifications', user?.id],
+    enabled: !!user?.id,
+    queryFn: async (): Promise<Notification[]> => {
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', user!.id)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data as DbNotification[]).map((n) => ({
+        id: n.id,
+        type: n.type,
+        title: n.title,
+        message: n.message,
+        timestamp: new Date(n.created_at),
+        read: n.read,
+        category: n.category,
+        priority: n.priority,
+      }));
     },
-    {
-      id: '2',
-      type: 'success',
-      title: 'Payment Received',
-      message: 'Customer "Ahmad Ali" paid PKR 5,000 for recent order',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60),
-      read: false,
-      category: 'transaction',
-      priority: 'medium'
-    },
-    {
-      id: '3',
-      type: 'info',
-      title: 'New Customer Registration',
-      message: 'Customer "Sara Khan" has been added to the system',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2),
-      read: true,
-      category: 'customer',
-      priority: 'low'
-    },
-    {
-      id: '4',
-      type: 'error',
-      title: 'Transaction Failed',
-      message: 'Payment processing failed for order #12345',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 3),
-      read: false,
-      category: 'transaction',
-      priority: 'high'
-    },
-    {
-      id: '5',
-      type: 'info',
-      title: 'Monthly Report Ready',
-      message: 'Your monthly business report is ready for download',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 6),
-      read: true,
-      category: 'report',
-      priority: 'medium'
-    }
-  ];
+  });
 
   useEffect(() => {
-    setNotifications(mockNotifications);
-  }, []);
+    if (data) setNotifications(data);
+  }, [data]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    const channel = supabase
+      .channel('notifications-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            const n = payload.new as DbNotification;
+            setNotifications((prev) => [
+              { id: n.id, type: n.type, title: n.title, message: n.message, timestamp: new Date(n.created_at), read: n.read, category: n.category, priority: n.priority },
+              ...prev,
+            ]);
+          } else if (payload.eventType === 'UPDATE') {
+            const n = payload.new as DbNotification;
+            setNotifications((prev) =>
+              prev.map((item) => (item.id === n.id ? { ...item, read: n.read, title: n.title, message: n.message, priority: n.priority, category: n.category, type: n.type, timestamp: new Date(n.created_at) } : item))
+            );
+          } else if (payload.eventType === 'DELETE') {
+            const n = payload.old as DbNotification;
+            setNotifications((prev) => prev.filter((item) => item.id !== n.id));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id]);
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -132,27 +147,24 @@ const Notifications = () => {
     }
   };
 
-  const markAsRead = (id: string) => {
-    setNotifications(prev => 
-      prev.map(n => n.id === id ? { ...n, read: true } : n)
-    );
-    toast({
-      title: "Notification marked as read"
-    });
+  const markAsRead = async (id: string) => {
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+    await supabase.from('notifications').update({ read: true }).eq('id', id);
+    toast({ title: "Notification marked as read" });
   };
 
-  const markAllAsRead = () => {
+  const markAllAsRead = async () => {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-    toast({
-      title: "All notifications marked as read"
-    });
+    if (user?.id) {
+      await supabase.from('notifications').update({ read: true }).eq('user_id', user.id).eq('read', false);
+    }
+    toast({ title: "All notifications marked as read" });
   };
 
-  const deleteNotification = (id: string) => {
+  const deleteNotification = async (id: string) => {
     setNotifications(prev => prev.filter(n => n.id !== id));
-    toast({
-      title: "Notification deleted"
-    });
+    await supabase.from('notifications').delete().eq('id', id);
+    toast({ title: "Notification deleted" });
   };
 
   const filteredNotifications = notifications.filter(notification => {

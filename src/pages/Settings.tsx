@@ -41,27 +41,31 @@ import {
   Eye,
   EyeOff
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { UserAccessManagement } from "@/components/settings/UserAccessManagement";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 const Settings = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const [showProfilePrompt, setShowProfilePrompt] = useState(false);
   const [settings, setSettings] = useState({
     // Business Profile
-    businessName: "Khata Management System",
-    businessAddress: "123 Business Street, Lahore, Pakistan",
-    businessPhone: "+92-300-1234567",
-    businessEmail: "info@khatams.com",
-    businessLicense: "BL-2024-001",
-    taxId: "NTN-12345678",
+    businessName: "",
+    businessAddress: "",
+    businessPhone: "",
+    businessEmail: "",
+    businessLicense: "",
+    taxId: "",
     
     // User Profile
-    userName: "Admin User",
-    userEmail: "admin@khatams.com",
-    userPhone: "+92-300-9876543",
-    userRole: "Administrator",
+    userName: "",
+    userEmail: "",
+    userPhone: "",
+    userRole: "Staff",
     
     // System Preferences
     currency: "PKR",
@@ -123,6 +127,40 @@ const Settings = () => {
     maintenanceMode: false
   });
 
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (!user?.id) return;
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('business_name, owner_name, email, phone, address, business_license, tax_id')
+        .eq('id', user.id)
+        .maybeSingle();
+      if (error) {
+        console.error('Error loading profile:', error);
+        return;
+      }
+      if (data) {
+        setSettings((prev) => ({
+          ...prev,
+          businessName: data.business_name ?? "",
+          businessEmail: data.email ?? "",
+          businessPhone: data.phone ?? "",
+          businessAddress: data.address ?? "",
+          businessLicense: data.business_license ?? "",
+          taxId: data.tax_id ?? "",
+          userName: data.owner_name ?? "",
+          userEmail: data.email ?? "",
+          userPhone: data.phone ?? "",
+        }));
+        const missing = !data.business_name || !data.email || !data.phone || !data.address;
+        setShowProfilePrompt(missing);
+      } else {
+        setShowProfilePrompt(true);
+      }
+    };
+    loadProfile();
+  }, [user?.id]);
+
   const handleSettingChange = (key: string, value: any) => {
     setSettings(prev => ({
       ...prev,
@@ -181,6 +219,22 @@ const Settings = () => {
             </Button>
           </div>
         </div>
+
+        <AlertDialog open={showProfilePrompt} onOpenChange={setShowProfilePrompt}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Complete your profile</AlertDialogTitle>
+              <AlertDialogDescription>
+                To personalize your experience, please complete your Business Profile and contact details in Settings.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogAction onClick={() => setShowProfilePrompt(false)}>
+                Got it
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         <Tabs defaultValue="business" className="space-y-6">
           <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-8">
