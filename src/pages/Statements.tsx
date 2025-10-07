@@ -14,20 +14,14 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 type Transaction = {
   id: string;
   customer_id: string;
-  product_id?: string;
   type: "credit" | "debit";
   amount: number;
-  quantity: number;
   description?: string;
   created_at: string;
   customers?: {
     name: string;
     phone?: string;
     address?: string;
-  };
-  products?: {
-    name: string;
-    sku: string;
   };
 };
 
@@ -62,8 +56,7 @@ export default function Statements() {
         .from("transactions")
         .select(`
           *,
-          customers(name, phone, address),
-          products(name, sku)
+          customers(name, phone, address)
         `)
         .eq("customer_id", selectedCustomerId)
         .gte("created_at", dateRange.from.toISOString())
@@ -356,7 +349,6 @@ Your Business Team`;
                         <tr className="border-b">
                           <th className="text-left p-3">Date</th>
                           <th className="text-left p-3">Description</th>
-                          <th className="text-left p-3">Product</th>
                           <th className="text-right p-3">Debit</th>
                           <th className="text-right p-3">Credit</th>
                           <th className="text-right p-3">Balance</th>
@@ -369,17 +361,7 @@ Your Business Team`;
                               {format(new Date(transaction.created_at), "MMM dd, yyyy")}
                             </td>
                             <td className="p-3">
-                              {transaction.description || `${transaction.type === 'credit' ? 'Sale' : 'Payment'} - ${transaction.quantity} item(s)`}
-                            </td>
-                            <td className="p-3">
-                              {transaction.products ? (
-                                <div>
-                                  <p className="font-medium">{transaction.products.name}</p>
-                                  <p className="text-xs text-muted-foreground">{transaction.products.sku}</p>
-                                </div>
-                              ) : (
-                                '-'
-                              )}
+                              {transaction.description || `${transaction.type === 'credit' ? 'Sale' : 'Payment'}`}
                             </td>
                             <td className="p-3 text-right">
                               {transaction.type === 'debit' ? (
@@ -410,7 +392,7 @@ Your Business Team`;
                       </tbody>
                       <tfoot>
                         <tr className="border-t-2 font-medium">
-                          <td className="p-3" colSpan={3}>Total</td>
+                          <td className="p-3" colSpan={2}>Total</td>
                           <td className="p-3 text-right text-success">
                             Rs. {totalDebits.toLocaleString()}
                           </td>

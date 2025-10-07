@@ -13,18 +13,12 @@ import { Badge } from "@/components/ui/badge";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Search, Plus, Edit, Trash2, Package, DollarSign, Hash, Tag } from "lucide-react";
+import { Search, Plus, Edit, Trash2, Package, DollarSign } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 
-const productCategories = [
-  "shirts", "pants", "shoes", "accessories", "jackets", "dresses", "suits", "casual", "formal"
-] as const;
-
 const productSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
-  sku: z.string().min(1, "SKU is required"),
-  category: z.enum(productCategories, { required_error: "Please select a category" }),
   price: z.number().min(0, "Price must be positive"),
   stock_quantity: z.number().min(0, "Stock quantity must be positive"),
   description: z.string().optional(),
@@ -33,17 +27,15 @@ const productSchema = z.object({
 type Product = {
   id: string;
   name: string;
-  sku: string;
-  category: typeof productCategories[number];
   price: number;
   stock_quantity: number;
   description?: string;
   created_at: string;
+  user_id: string;
 };
 
 export default function Products() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [stockFilter, setStockFilter] = useState<string>("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -54,8 +46,6 @@ export default function Products() {
     resolver: zodResolver(productSchema),
     defaultValues: {
       name: "",
-      sku: "",
-      category: "casual",
       price: 0,
       stock_quantity: 0,
       description: "",
@@ -66,9 +56,11 @@ export default function Products() {
   const { data: products = [], isLoading } = useQuery({
     queryKey: ["products"],
     queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
       const { data, error } = await supabase
         .from("products")
         .select("*")
+        .eq("user_id", user?.id)
         .order("created_at", { ascending: false });
       
       if (error) throw error;
@@ -79,18 +71,19 @@ export default function Products() {
   // Create product mutation
   const createProductMutation = useMutation({
     mutationFn: async (values: z.infer<typeof productSchema>) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      
       const cleanedValues = {
         name: values.name,
-        sku: values.sku,
-        category: values.category,
         price: values.price,
         stock_quantity: values.stock_quantity,
         description: values.description || null,
+        user_id: user?.id,
       };
       
       const { data, error } = await supabase
         .from("products")
-        .insert(cleanedValues)
+        .insert([cleanedValues])
         .select()
         .single();
       
@@ -120,8 +113,6 @@ export default function Products() {
     mutationFn: async ({ id, ...values }: { id: string } & z.infer<typeof productSchema>) => {
       const cleanedValues = {
         name: values.name,
-        sku: values.sku,
-        category: values.category,
         price: values.price,
         stock_quantity: values.stock_quantity,
         description: values.description || null,
@@ -185,17 +176,14 @@ export default function Products() {
   // Filter products
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          product.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesCategory = categoryFilter === "all" || product.category === categoryFilter;
     
     const matchesStock = stockFilter === "all" ||
                         (stockFilter === "in-stock" && product.stock_quantity > 0) ||
                         (stockFilter === "low-stock" && product.stock_quantity > 0 && product.stock_quantity <= 10) ||
                         (stockFilter === "out-of-stock" && product.stock_quantity === 0);
     
-    return matchesSearch && matchesCategory && matchesStock;
+    return matchesSearch && matchesStock;
   });
 
   const onSubmit = (values: z.infer<typeof productSchema>) => {
@@ -210,8 +198,6 @@ export default function Products() {
     setEditingProduct(product);
     form.reset({
       name: product.name,
-      sku: product.sku,
-      category: product.category,
       price: product.price,
       stock_quantity: product.stock_quantity,
       description: product.description || "",
@@ -277,43 +263,6 @@ export default function Products() {
                         <FormControl>
                           <Input placeholder="Enter product name" {...field} />
                         </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="sku"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>SKU *</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter SKU" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="category"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Category *</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a category" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {productCategories.map((category) => (
-                              <SelectItem key={category} value={category}>
-                                {category.charAt(0).toUpperCase() + category.slice(1)}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -396,7 +345,7 @@ export default function Products() {
           <CardHeader>
             <CardTitle>Search & Filter</CardTitle>
             <CardDescription>
-              Find products by name, SKU, or description and filter by category and stock status
+              Find products by name or description and filter by stock status
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -409,20 +358,7 @@ export default function Products() {
                 className="pl-10"
               />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Filter by category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  {productCategories.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category.charAt(0).toUpperCase() + category.slice(1)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div>
               <Select value={stockFilter} onValueChange={setStockFilter}>
                 <SelectTrigger>
                   <SelectValue placeholder="Filter by stock status" />
@@ -457,8 +393,6 @@ export default function Products() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Product</TableHead>
-                      <TableHead>SKU</TableHead>
-                      <TableHead>Category</TableHead>
                       <TableHead>Price</TableHead>
                       <TableHead>Stock</TableHead>
                       <TableHead>Status</TableHead>
@@ -483,18 +417,6 @@ export default function Products() {
                               )}
                             </div>
                           </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1">
-                            <Hash className="h-3 w-3 text-muted-foreground" />
-                            {product.sku}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">
-                            <Tag className="h-3 w-3 mr-1" />
-                            {product.category.charAt(0).toUpperCase() + product.category.slice(1)}
-                          </Badge>
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1">
@@ -536,8 +458,8 @@ export default function Products() {
                     ))}
                     {filteredProducts.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
-                          {searchTerm || categoryFilter !== "all" || stockFilter !== "all" 
+                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                          {searchTerm || stockFilter !== "all" 
                             ? "No products found matching your filters." 
                             : "No products yet. Add your first product to get started."}
                         </TableCell>

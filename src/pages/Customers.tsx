@@ -89,16 +89,19 @@ export default function Customers() {
   // Create customer mutation
   const createCustomerMutation = useMutation({
     mutationFn: async (values: z.infer<typeof customerSchema>) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      
       const cleanedValues = {
         name: values.name,
         phone: values.phone || null,
         cnic: values.cnic || null,
         address: values.address || null,
+        user_id: user?.id,
       };
       
       const { data, error } = await supabase
         .from("customers")
-        .insert(cleanedValues)
+        .insert([cleanedValues])
         .select()
         .single();
       

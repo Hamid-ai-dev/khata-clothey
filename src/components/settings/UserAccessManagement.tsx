@@ -15,7 +15,6 @@ import { useAuth } from "@/hooks/useAuth";
 interface AllowedEmail {
   id: string;
   email: string;
-  is_admin: boolean;
   created_at: string;
 }
 
@@ -33,15 +32,12 @@ export const UserAccessManagement = () => {
 
   useEffect(() => {
     const checkAdminStatus = async () => {
-      if (!user?.email) return;
+      if (!user?.id) return;
       
       const { data } = await supabase
-        .from("allowed_emails")
-        .select("is_admin")
-        .eq("email", user.email)
-        .single();
+        .rpc('has_role', { _user_id: user.id, _role: 'admin' });
       
-      setCurrentUserIsAdmin(data?.is_admin || false);
+      setCurrentUserIsAdmin(data || false);
     };
 
     checkAdminStatus();
@@ -80,8 +76,6 @@ export const UserAccessManagement = () => {
         .from("allowed_emails")
         .insert({
           email: newEmail.toLowerCase(),
-          is_admin: isAdmin,
-          added_by: user?.id,
         });
 
       if (error) throw error;
@@ -243,15 +237,8 @@ export const UserAccessManagement = () => {
                       {allowedEmail.email}
                     </TableCell>
                     <TableCell>
-                      <Badge variant={allowedEmail.is_admin ? "default" : "secondary"}>
-                        {allowedEmail.is_admin ? (
-                          <>
-                            <Shield className="h-3 w-3 mr-1" />
-                            Administrator
-                          </>
-                        ) : (
-                          "User"
-                        )}
+                      <Badge variant="secondary">
+                        User
                       </Badge>
                     </TableCell>
                     <TableCell className="text-muted-foreground">

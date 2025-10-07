@@ -19,28 +19,20 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 
 const transactionSchema = z.object({
   customer_id: z.string().min(1, "Please select a customer"),
-  product_id: z.string().optional(),
   type: z.enum(["credit", "debit"], { required_error: "Please select transaction type" }),
   amount: z.number().min(0.01, "Amount must be greater than 0"),
-  quantity: z.number().min(1, "Quantity must be at least 1"),
   description: z.string().optional(),
 });
 
 type Transaction = {
   id: string;
   customer_id: string;
-  product_id?: string;
   type: "credit" | "debit";
   amount: number;
-  quantity: number;
   description?: string;
   created_at: string;
   customers?: {
     name: string;
-  };
-  products?: {
-    name: string;
-    sku: string;
   };
 };
 
@@ -52,7 +44,6 @@ type Customer = {
 type Product = {
   id: string;
   name: string;
-  sku: string;
   price: number;
 };
 
@@ -69,27 +60,24 @@ export default function Transactions() {
     resolver: zodResolver(transactionSchema),
     defaultValues: {
       customer_id: "",
-      product_id: "",
       type: "credit",
       amount: 0,
-      quantity: 1,
       description: "",
     },
   });
-
-  const selectedProductId = form.watch("product_id");
 
   // Fetch transactions
   const { data: transactions = [], isLoading } = useQuery({
     queryKey: ["transactions"],
     queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
       const { data, error } = await supabase
         .from("transactions")
         .select(`
           *,
-          customers(name),
-          products(name, sku)
+          customers(name)
         `)
+        .eq("user_id", user?.id)
         .order("created_at", { ascending: false });
       
       if (error) throw error;
@@ -101,9 +89,11 @@ export default function Transactions() {
   const { data: customers = [] } = useQuery({
     queryKey: ["customers-list"],
     queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
       const { data, error } = await supabase
         .from("customers")
         .select("id, name")
+        .eq("user_id", user?.id)
         .order("name");
       
       if (error) throw error;
@@ -111,42 +101,22 @@ export default function Transactions() {
     },
   });
 
-  // Fetch products
-  const { data: products = [] } = useQuery({
-    queryKey: ["products-list"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("products")
-        .select("id, name, sku, price")
-        .order("name");
-      
-      if (error) throw error;
-      return data as Product[];
-    },
-  });
-
-  // Auto-set price when product is selected
-  const selectedProduct = products.find(p => p.id === selectedProductId);
-  if (selectedProduct && form.getValues("amount") === 0) {
-    form.setValue("amount", selectedProduct.price);
-  }
-
   // Create transaction mutation
   const createTransactionMutation = useMutation({
     mutationFn: async (values: z.infer<typeof transactionSchema>) => {
-      // Clean up the values - remove empty product_id
+      const { data: { user } } = await supabase.auth.getUser();
+      
       const cleanedValues = {
         customer_id: values.customer_id,
         type: values.type,
         amount: values.amount,
-        quantity: values.quantity,
-        product_id: values.product_id || null,
         description: values.description || null,
+        user_id: user?.id,
       };
       
       const { data, error } = await supabase
         .from("transactions")
-        .insert(cleanedValues)
+        .insert([cleanedValues])
         .select()
         .single();
       
@@ -179,8 +149,6 @@ export default function Transactions() {
         customer_id: values.customer_id,
         type: values.type,
         amount: values.amount,
-        quantity: values.quantity,
-        product_id: values.product_id || null,
         description: values.description || null,
       };
       
@@ -244,8 +212,6 @@ export default function Transactions() {
   // Filter transactions
   const filteredTransactions = transactions.filter(transaction => {
     const matchesSearch = transaction.customers?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         transaction.products?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         transaction.products?.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          transaction.description?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesType = typeFilter === "all" || transaction.type === typeFilter;
@@ -266,10 +232,8 @@ export default function Transactions() {
     setEditingTransaction(transaction);
     form.reset({
       customer_id: transaction.customer_id,
-      product_id: transaction.product_id || "",
       type: transaction.type,
       amount: transaction.amount,
-      quantity: transaction.quantity,
       description: transaction.description || "",
     });
     setIsDialogOpen(true);
@@ -285,10 +249,8 @@ export default function Transactions() {
     setEditingTransaction(null);
     form.reset({
       customer_id: "",
-      product_id: "",
       type: "credit",
       amount: 0,
-      quantity: 1,
       description: "",
     });
     setIsDialogOpen(true);
@@ -375,68 +337,23 @@ export default function Transactions() {
                   />
                   <FormField
                     control={form.control}
-                    name="product_id"
+                    name="amount"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Product (Optional)</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select product (optional)" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="">No product selected</SelectItem>
-                            {products.map((product) => (
-                              <SelectItem key={product.id} value={product.id}>
-                                {product.name} - {product.sku} (Rs. {product.price})
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <FormLabel>Amount (Rs.) *</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            placeholder="0.00"
+                            {...field}
+                            onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                          />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="amount"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Amount (Rs.) *</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              step="0.01"
-                              placeholder="0.00"
-                              {...field}
-                              onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="quantity"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Quantity *</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              placeholder="1"
-                              {...field}
-                              onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
                   <FormField
                     control={form.control}
                     name="description"
@@ -573,9 +490,7 @@ export default function Transactions() {
                     <TableRow>
                       <TableHead>Type</TableHead>
                       <TableHead>Customer</TableHead>
-                      <TableHead>Product</TableHead>
                       <TableHead>Amount</TableHead>
-                      <TableHead>Qty</TableHead>
                       <TableHead>Description</TableHead>
                       <TableHead>Date</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
@@ -601,24 +516,10 @@ export default function Transactions() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          {transaction.products ? (
-                            <div className="flex items-center gap-1">
-                              <Package className="h-3 w-3 text-muted-foreground" />
-                              <div>
-                                <div className="font-medium text-sm">{transaction.products.name}</div>
-                                <div className="text-xs text-muted-foreground">{transaction.products.sku}</div>
-                              </div>
-                            </div>
-                          ) : (
-                            <span className="text-muted-foreground">-</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
                           <span className={`font-medium ${transaction.type === "credit" ? "text-destructive" : "text-green-600"}`}>
                             Rs. {transaction.amount.toFixed(2)}
                           </span>
                         </TableCell>
-                        <TableCell>{transaction.quantity}</TableCell>
                         <TableCell>
                           {transaction.description ? (
                             <span className="text-sm">
@@ -659,7 +560,7 @@ export default function Transactions() {
                     ))}
                     {filteredTransactions.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                           {searchTerm || typeFilter !== "all" || customerFilter !== "all" 
                             ? "No transactions found matching your filters." 
                             : "No transactions yet. Add your first transaction to get started."}

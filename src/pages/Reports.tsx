@@ -26,13 +26,14 @@ export default function Reports() {
   const { data: transactions = [] } = useQuery({
     queryKey: ["transactions-reports", dateRange],
     queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
       const { data, error } = await supabase
         .from("transactions")
         .select(`
           *,
-          customers(name),
-          products(name, category, sku)
+          customers(name)
         `)
+        .eq("user_id", user?.id)
         .gte("created_at", dateRange.from.toISOString())
         .lte("created_at", dateRange.to.toISOString())
         .order("created_at", { ascending: false });
@@ -100,14 +101,8 @@ export default function Reports() {
     amount
   })).slice(-14); // Last 14 days
 
-  // Product performance data
-  const productSales = filteredTransactions
-    .filter(t => t.type === "credit" && t.products)
-    .reduce((acc, t) => {
-      const productName = t.products?.name || "Unknown";
-      acc[productName] = (acc[productName] || 0) + t.amount;
-      return acc;
-    }, {} as Record<string, number>);
+  // Product performance data (empty since we removed products relationship)
+  const productSales = {} as Record<string, number>;
 
   const productChartData = Object.entries(productSales)
     .map(([name, sales]) => ({ name, sales }))
@@ -421,7 +416,6 @@ export default function Reports() {
                   <tr className="border-b">
                     <th className="text-left p-2">Date</th>
                     <th className="text-left p-2">Customer</th>
-                    <th className="text-left p-2">Product</th>
                     <th className="text-left p-2">Type</th>
                     <th className="text-right p-2">Amount</th>
                     <th className="text-left p-2">Description</th>
@@ -432,7 +426,6 @@ export default function Reports() {
                     <tr key={transaction.id} className="border-b hover:bg-muted/50">
                       <td className="p-2">{format(new Date(transaction.created_at), "MMM dd, yyyy")}</td>
                       <td className="p-2">{transaction.customers?.name || 'Unknown'}</td>
-                      <td className="p-2">{transaction.products?.name || '-'}</td>
                       <td className="p-2">
                         <span className={`px-2 py-1 rounded text-xs ${
                           transaction.type === 'credit' 

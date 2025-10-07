@@ -54,13 +54,15 @@ export function QuickActions() {
 
   const handleAddTransaction = async () => {
     try {
-      const { error } = await supabase.from('transactions').insert({
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      const { error } = await supabase.from('transactions').insert([{
         customer_id: transactionForm.customer_id,
-        type: transactionForm.type as 'credit' | 'debit',
+        type: transactionForm.type,
         amount: parseFloat(transactionForm.amount),
         description: transactionForm.description,
-        product_id: transactionForm.product_id || null
-      });
+        user_id: user?.id
+      }]);
 
       if (error) throw error;
 
@@ -88,12 +90,15 @@ export function QuickActions() {
 
   const handleAddCustomer = async () => {
     try {
-      const { error } = await supabase.from('customers').insert({
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      const { error } = await supabase.from('customers').insert([{
         name: customerForm.name,
         phone: customerForm.phone,
         cnic: customerForm.cnic,
-        address: customerForm.address
-      });
+        address: customerForm.address,
+        user_id: user?.id
+      }]);
 
       if (error) throw error;
 
